@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f3f0e8" />
+    <title>Финансы</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Личный трекер</p>
+          <h1>Финансы</h1>
+        </div>
+        <button class="icon-button" id="themeToggle" type="button" aria-label="Сменить тему" title="Сменить тему">
+          <span aria-hidden="true">◐</span>
+        </button>
+      </header>
+
+      <section class="summary-grid" aria-label="Сводка">
+        <article class="balance-panel">
+          <div class="panel-head">
+            <span>Баланс месяца</span>
+            <input id="monthPicker" class="month-input" type="month" aria-label="Месяц" />
+          </div>
+          <strong id="monthBalance">0 ₸</strong>
+          <p id="monthDelta">Доходы 0 ₸ · Расходы 0 ₸</p>
+        </article>
+        <article class="metric">
+          <span>Сегодня</span>
+          <strong id="todayTotal">0 ₸</strong>
+        </article>
+        <article class="metric">
+          <span>Средний расход</span>
+          <strong id="averageExpense">0 ₸</strong>
+        </article>
+      </section>
+
+      <section class="entry-panel" aria-label="Новая операция">
+        <div class="segmented" role="group" aria-label="Тип операции">
+          <button class="segment active" type="button" data-type="expense">Расход</button>
+          <button class="segment" type="button" data-type="income">Доход</button>
+        </div>
+
+        <form id="transactionForm" class="entry-form">
+          <label>
+            <span>Сумма</span>
+            <input id="amountInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" required />
+          </label>
+          <label>
+            <span>Категория</span>
+            <select id="categoryInput"></select>
+          </label>
+          <label class="wide">
+            <span>Описание</span>
+            <input id="noteInput" type="text" maxlength="64" placeholder="Например: кофе, такси, зарплата" />
+          </label>
+          <label>
+            <span>Дата</span>
+            <input id="dateInput" type="date" required />
+          </label>
+          <button class="primary-action" type="submit">Добавить</button>
+        </form>
+      </section>
+
+      <section class="content-grid">
+        <article class="chart-panel">
+          <div class="section-title">
+            <h2>Категории</h2>
+            <span id="categoryCount">0</span>
+          </div>
+          <div id="categoryBars" class="category-bars"></div>
+        </article>
+
+        <article class="history-panel">
+          <div class="section-title">
+            <h2>Операции</h2>
+            <button class="text-button" id="clearMonth" type="button">Очистить месяц</button>
+          </div>
+          <div id="transactionList" class="transaction-list"></div>
+        </article>
+      </section>
+    </main>
+
+    <nav class="dock" aria-label="Данные">
+      <button id="exportData" type="button">Экспорт</button>
+      <label class="import-button">
+        Импорт
+        <input id="importData" type="file" accept="application/json" />
+      </label>
+      <button id="clearAll" type="button">Сброс</button>
+    </nav>
+
+    <script src="app.js"></script>
+  </body>
+</html>

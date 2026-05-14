@@ -14,10 +14,24 @@
           <p class="eyebrow">Личный трекер</p>
           <h1>Финансы</h1>
         </div>
-        <button class="icon-button" id="themeToggle" type="button" aria-label="Сменить тему" title="Сменить тему">
-          <span aria-hidden="true">◐</span>
-        </button>
+        <div class="header-actions">
+          <button class="icon-button" id="themeToggle" type="button" aria-label="Сменить тему" title="Сменить тему">
+            <span aria-hidden="true">◐</span>
+          </button>
+          <button class="icon-button" id="menuToggle" type="button" aria-expanded="false" aria-controls="dataMenu" aria-label="Открыть меню" title="Меню">
+            <span aria-hidden="true">☰</span>
+          </button>
+        </div>
       </header>
+
+      <div class="data-menu" id="dataMenu" hidden>
+        <button id="exportData" type="button">Экспорт данных</button>
+        <label class="import-button">
+          Импорт данных
+          <input id="importData" type="file" accept="application/json" />
+        </label>
+        <button id="clearAll" type="button">Сбросить все</button>
+      </div>
 
       <section class="summary-grid" aria-label="Сводка">
         <article class="balance-panel">
@@ -94,15 +108,6 @@
         </article>
       </section>
     </main>
-
-    <nav class="dock" aria-label="Данные">
-      <button id="exportData" type="button">Экспорт</button>
-      <label class="import-button">
-        Импорт
-        <input id="importData" type="file" accept="application/json" />
-      </label>
-      <button id="clearAll" type="button">Сброс</button>
-    </nav>
 
     <script src="app.js"></script>
   </body>

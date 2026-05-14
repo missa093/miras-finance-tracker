@@ -58,12 +58,21 @@ select {
 
 .topbar,
 .panel-head,
-.section-title,
-.dock {
+.section-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.topbar {
+  position: relative;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .eyebrow {
@@ -92,7 +101,7 @@ h2 {
 
 .icon-button,
 .text-button,
-.dock button,
+.data-menu button,
 .import-button,
 .primary-action,
 .secondary-action,
@@ -108,6 +117,35 @@ h2 {
   background: var(--panel);
   color: var(--ink);
   box-shadow: var(--shadow);
+}
+
+.data-menu {
+  position: absolute;
+  top: 82px;
+  right: 18px;
+  z-index: 20;
+  display: grid;
+  width: min(260px, calc(100vw - 36px));
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
+  padding: 8px;
+  box-shadow: var(--shadow);
+}
+
+.data-menu[hidden] {
+  display: none;
+}
+
+.data-menu button,
+.data-menu .import-button {
+  width: 100%;
+  min-height: 42px;
+  justify-content: start;
+  background: transparent;
+  color: var(--ink);
+  padding: 0 12px;
 }
 
 .summary-grid {
@@ -385,29 +423,9 @@ select {
   text-align: center;
 }
 
-.dock {
-  position: fixed;
-  right: 50%;
-  bottom: 14px;
-  z-index: 10;
-  width: min(520px, calc(100% - 28px));
-  transform: translateX(50%);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
-  padding: 8px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(14px);
-}
-
-.dock button,
 .import-button {
-  flex: 1;
-  min-height: 42px;
-  background: transparent;
-  color: var(--ink);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .import-button input {

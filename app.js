@@ -17,6 +17,8 @@ const state = {
 
 const elements = {
   themeToggle: document.querySelector("#themeToggle"),
+  menuToggle: document.querySelector("#menuToggle"),
+  dataMenu: document.querySelector("#dataMenu"),
   monthPicker: document.querySelector("#monthPicker"),
   monthBalance: document.querySelector("#monthBalance"),
   monthDelta: document.querySelector("#monthDelta"),
@@ -77,7 +79,9 @@ function normalizeCategory(value) {
 }
 
 function getCategories(type = state.type) {
-  return [...defaultCategories[type], ...state.customCategories[type]];
+  const withoutOther = defaultCategories[type].filter((category) => category.toLowerCase() !== "другое");
+  const customWithoutOther = state.customCategories[type].filter((category) => category.toLowerCase() !== "другое");
+  return [...withoutOther, ...customWithoutOther, "Другое"];
 }
 
 function cleanCategoryList(value) {
@@ -259,6 +263,11 @@ function addCustomCategory(event) {
   render();
 }
 
+function setMenuOpen(isOpen) {
+  elements.dataMenu.hidden = !isOpen;
+  elements.menuToggle.setAttribute("aria-expanded", String(isOpen));
+}
+
 function deleteCustomCategory(category) {
   const isUsed = state.transactions.some((item) => item.type === state.type && item.category === category);
   if (isUsed && !confirm("Категория уже используется в операциях. Удалить ее из списка новых операций?")) return;
@@ -331,10 +340,26 @@ elements.clearMonth.addEventListener("click", () => {
 elements.clearAll.addEventListener("click", () => {
   if (!confirm("Удалить все сохраненные данные в этом браузере?")) return;
   state.transactions = [];
+  setMenuOpen(false);
   render();
 });
-elements.exportData.addEventListener("click", exportData);
-elements.importData.addEventListener("change", importData);
+elements.exportData.addEventListener("click", () => {
+  exportData();
+  setMenuOpen(false);
+});
+elements.importData.addEventListener("change", (event) => {
+  importData(event);
+  setMenuOpen(false);
+});
+elements.menuToggle.addEventListener("click", () => setMenuOpen(elements.dataMenu.hidden));
+document.addEventListener("click", (event) => {
+  const clickedInsideMenu = elements.dataMenu.contains(event.target);
+  const clickedToggle = elements.menuToggle.contains(event.target);
+  if (!clickedInsideMenu && !clickedToggle) setMenuOpen(false);
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") setMenuOpen(false);
+});
 elements.themeToggle.addEventListener("click", () => {
   const current = document.documentElement.dataset.theme;
   document.documentElement.dataset.theme = current === "dark" ? "" : "dark";

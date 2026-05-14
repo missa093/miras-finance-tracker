@@ -63,6 +63,17 @@
           </label>
           <button class="primary-action" type="submit">Добавить</button>
         </form>
+
+        <div class="category-manager" aria-label="Свои категории">
+          <form id="categoryForm" class="category-form">
+            <label>
+              <span>Своя категория</span>
+              <input id="newCategoryInput" type="text" maxlength="32" placeholder="Например: книги" />
+            </label>
+            <button class="secondary-action" type="submit">Добавить категорию</button>
+          </form>
+          <div id="customCategoryList" class="custom-category-list"></div>
+        </div>
       </section>
 
       <section class="content-grid">

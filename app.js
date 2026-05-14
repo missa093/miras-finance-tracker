@@ -1,12 +1,16 @@
 const STORAGE_KEY = "personal-finance-tracker-v1";
 
-const categories = {
+const defaultCategories = {
   expense: ["Еда", "Транспорт", "Дом", "Здоровье", "Развлечения", "Покупки", "Другое"],
   income: ["Зарплата", "Фриланс", "Подарок", "Возврат", "Другое"],
 };
 
 const state = {
   transactions: [],
+  customCategories: {
+    expense: [],
+    income: [],
+  },
   type: "expense",
   month: getLocalMonthValue(),
 };
@@ -22,8 +26,11 @@ const elements = {
   categoryBars: document.querySelector("#categoryBars"),
   transactionList: document.querySelector("#transactionList"),
   transactionForm: document.querySelector("#transactionForm"),
+  categoryForm: document.querySelector("#categoryForm"),
   amountInput: document.querySelector("#amountInput"),
   categoryInput: document.querySelector("#categoryInput"),
+  newCategoryInput: document.querySelector("#newCategoryInput"),
+  customCategoryList: document.querySelector("#customCategoryList"),
   noteInput: document.querySelector("#noteInput"),
   dateInput: document.querySelector("#dateInput"),
   clearMonth: document.querySelector("#clearMonth"),
@@ -65,6 +72,23 @@ function escapeHtml(value) {
   });
 }
 
+function normalizeCategory(value) {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function getCategories(type = state.type) {
+  return [...defaultCategories[type], ...state.customCategories[type]];
+}
+
+function cleanCategoryList(value) {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map(normalizeCategory)
+    .filter(Boolean)
+    .filter((category, index, list) => list.findIndex((item) => item.toLowerCase() === category.toLowerCase()) === index);
+}
+
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return;
@@ -72,6 +96,8 @@ function loadState() {
   try {
     const parsed = JSON.parse(saved);
     state.transactions = Array.isArray(parsed.transactions) ? parsed.transactions : [];
+    state.customCategories.expense = cleanCategoryList(parsed.customCategories?.expense);
+    state.customCategories.income = cleanCategoryList(parsed.customCategories?.income);
     state.month = parsed.month || state.month;
     document.documentElement.dataset.theme = parsed.theme || "";
   } catch {
@@ -84,6 +110,7 @@ function saveState() {
     STORAGE_KEY,
     JSON.stringify({
       transactions: state.transactions,
+      customCategories: state.customCategories,
       month: state.month,
       theme: document.documentElement.dataset.theme || "",
     }),
@@ -93,9 +120,10 @@ function saveState() {
 function setType(type) {
   state.type = type;
   elements.segments.forEach((button) => button.classList.toggle("active", button.dataset.type === type));
-  elements.categoryInput.innerHTML = categories[type]
-    .map((category) => `<option value="${category}">${category}</option>`)
+  elements.categoryInput.innerHTML = getCategories(type)
+    .map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`)
     .join("");
+  renderCustomCategories();
 }
 
 function getMonthTransactions() {
@@ -137,7 +165,7 @@ function renderCategories(monthItems) {
           ([category, amount]) => `
             <div class="bar-row">
               <div class="bar-label">
-                <span>${category}</span>
+                <span>${escapeHtml(category)}</span>
                 <strong>${formatMoney(amount)}</strong>
               </div>
               <div class="bar-track"><div class="bar-fill" style="width: ${(amount / max) * 100}%"></div></div>
@@ -146,6 +174,22 @@ function renderCategories(monthItems) {
         )
         .join("")
     : `<p class="empty-state">Расходов за этот месяц пока нет.</p>`;
+}
+
+function renderCustomCategories() {
+  const customCategories = state.customCategories[state.type];
+  elements.customCategoryList.innerHTML = customCategories.length
+    ? customCategories
+        .map(
+          (category) => `
+            <button class="category-chip" type="button" data-category="${escapeHtml(category)}" title="Удалить категорию">
+              <span>${escapeHtml(category)}</span>
+              <strong aria-hidden="true">×</strong>
+            </button>
+          `,
+        )
+        .join("")
+    : `<p class="category-hint">Свои категории для выбранного типа появятся здесь.</p>`;
 }
 
 function renderTransactions(monthItems) {
@@ -197,8 +241,35 @@ function addTransaction(event) {
   render();
 }
 
+function addCustomCategory(event) {
+  event.preventDefault();
+  const category = normalizeCategory(elements.newCategoryInput.value);
+  if (!category) return;
+
+  const existing = getCategories().map((item) => item.toLowerCase());
+  if (existing.includes(category.toLowerCase())) {
+    elements.newCategoryInput.value = "";
+    return;
+  }
+
+  state.customCategories[state.type].push(category);
+  elements.newCategoryInput.value = "";
+  setType(state.type);
+  elements.categoryInput.value = category;
+  render();
+}
+
+function deleteCustomCategory(category) {
+  const isUsed = state.transactions.some((item) => item.type === state.type && item.category === category);
+  if (isUsed && !confirm("Категория уже используется в операциях. Удалить ее из списка новых операций?")) return;
+
+  state.customCategories[state.type] = state.customCategories[state.type].filter((item) => item !== category);
+  setType(state.type);
+  render();
+}
+
 function exportData() {
-  const blob = new Blob([JSON.stringify({ transactions: state.transactions }, null, 2)], {
+  const blob = new Blob([JSON.stringify({ transactions: state.transactions, customCategories: state.customCategories }, null, 2)], {
     type: "application/json",
   });
   const url = URL.createObjectURL(blob);
@@ -219,6 +290,11 @@ function importData(event) {
       const parsed = JSON.parse(reader.result);
       if (!Array.isArray(parsed.transactions)) throw new Error("Bad file");
       state.transactions = parsed.transactions;
+      if (parsed.customCategories) {
+        state.customCategories.expense = cleanCategoryList(parsed.customCategories.expense);
+        state.customCategories.income = cleanCategoryList(parsed.customCategories.income);
+      }
+      setType(state.type);
       render();
     } catch {
       alert("Не получилось импортировать файл. Проверьте, что это экспорт из трекера.");
@@ -231,6 +307,7 @@ function importData(event) {
 
 elements.segments.forEach((button) => button.addEventListener("click", () => setType(button.dataset.type)));
 elements.transactionForm.addEventListener("submit", addTransaction);
+elements.categoryForm.addEventListener("submit", addCustomCategory);
 elements.monthPicker.addEventListener("change", (event) => {
   state.month = event.target.value;
   render();
@@ -240,6 +317,11 @@ elements.transactionList.addEventListener("click", (event) => {
   if (!button) return;
   state.transactions = state.transactions.filter((item) => item.id !== button.dataset.id);
   render();
+});
+elements.customCategoryList.addEventListener("click", (event) => {
+  const button = event.target.closest(".category-chip");
+  if (!button) return;
+  deleteCustomCategory(button.dataset.category);
 });
 elements.clearMonth.addEventListener("click", () => {
   if (!confirm("Удалить операции выбранного месяца?")) return;
